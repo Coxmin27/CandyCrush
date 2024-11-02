@@ -1,0 +1,175 @@
+#include <bits/stdc++.h>
+const int SIZE = 11;
+const int EMPTY = 0;
+const int RED = 1;
+const int YELLOW = 2;
+const int GREEN = 3;
+const int BLUE = 4;
+const int MAX_SCORE = 10000;
+const int TOTAL_GAMES = 100;
+std::vector<std::vector<int>> generateBoard()
+{
+    std::vector<std::vector<int>> board(SIZE, std::vector<int>(SIZE));
+    srand(static_cast<unsigned>(time(0)));
+
+    for (int i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            board[i][j] = rand() % 5;
+        }
+    }
+    return board;
+}
+void printBoard(const std::vector<std::vector<int>>& board)
+{
+    for (const auto& row : board)
+    {
+        for (int cell : row)
+        {
+            std::cout << cell << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+int removeMatches(std::vector<std::vector<int>>& board)
+{
+    int points = 0;
+    std::vector<std::vector<bool>> toClear(SIZE, std::vector<bool>(SIZE, false));
+    for (int i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j <= SIZE - 3; ++j)
+        {
+            if (board[i][j] != EMPTY && board[i][j] == board[i][j + 1] && board[i][j] == board[i][j + 2])
+            {
+                points += 5;
+                toClear[i][j] = toClear[i][j + 1] = toClear[i][j + 2] = true;
+            }
+            if (j <= SIZE - 4 && board[i][j] != EMPTY && board[i][j] == board[i][j + 1] && board[i][j] == board[i][j + 2] && board[i][j + 3] != EMPTY)
+            {
+                points += 10;
+                toClear[i][j] = toClear[i][j + 1] = toClear[i][j + 2] = toClear[i][j + 3] = true;
+            }
+        }
+    }
+    for (int j = 0; j < SIZE; ++j)
+    {
+        for (int i = 0; i <= SIZE - 3; ++i)
+        {
+            if (board[i][j] != EMPTY && board[i][j] == board[i + 1][j] && board[i][j] == board[i + 2][j])
+            {
+                points += 5;
+                toClear[i][j] = toClear[i + 1][j] = toClear[i + 2][j] = true;
+            }
+            if (i <= SIZE - 4 && board[i][j] != EMPTY && board[i][j] == board[i + 1][j] && board[i][j] == board[i + 2][j] && board[i + 3][j] != EMPTY)
+            {
+                points += 10;
+                toClear[i][j] = toClear[i + 1][j] = toClear[i + 2][j] = toClear[i + 3][j] = true;
+            }
+        }
+    }
+    for (int i = 0; i < SIZE - 2; ++i)
+    {
+        for (int j = 0; j < SIZE - 2; ++j)
+        {
+            if (board[i][j] != EMPTY && board[i][j] == board[i + 1][j] && board[i][j] == board[i][j + 1])
+            {
+                points += 20;
+                toClear[i][j] = toClear[i + 1][j] = toClear[i][j + 1] = true;
+            }
+            if (board[i][j] != EMPTY && board[i][j] == board[i + 1][j] && board[i][j] == board[i][j - 1])
+            {
+                points += 20;
+                toClear[i][j] = toClear[i + 1][j] = toClear[i][j - 1] = true;
+            }
+            if (board[i][j] != EMPTY && board[i][j] == board[i][j + 1] && board[i][j] == board[i + 1][j])
+            {
+                points += 30;
+                toClear[i][j] = toClear[i][j + 1] = toClear[i + 1][j] = true;
+            }
+            if (board[i][j] != EMPTY && board[i][j] == board[i][j + 1] && board[i][j] == board[i + 1][j + 1])
+            {
+                points += 20;
+                toClear[i][j] = toClear[i][j + 1] = toClear[i + 1][j + 1] = true;
+            }
+            if (board[i][j] != EMPTY && board[i][j] == board[i + 1][j] && board[i][j] == board[i + 2][j])
+            {
+                points += 30;
+                toClear[i][j] = toClear[i + 1][j] = toClear[i + 2][j] = true;
+            }
+        }
+    }
+    for (int i = 0; i < SIZE; ++i)
+    {
+        for (int j = 0; j < SIZE; ++j)
+        {
+            if (toClear[i][j])
+            {
+                board[i][j] = EMPTY;
+            }
+        }
+    }
+    return points;
+}
+void dropCandies(std::vector<std::vector<int>>& board)
+{
+    for (int j = 0; j < SIZE; ++j)
+    {
+        for (int i = SIZE - 1; i >= 0; --i)
+        {
+            if (board[i][j] == EMPTY)
+            {
+                for (int k = i - 1; k >= 0; --k)
+                {
+                    if (board[k][j] != EMPTY)
+                    {
+                        board[i][j] = board[k][j];
+                        board[k][j] = EMPTY;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+int playGame()
+{
+    auto board = generateBoard();
+    int totalPoints = 0;
+    std::cout << "Matrice initiala:" << std::endl;
+    printBoard(board);
+    std::cout << std::endl;
+
+    while (totalPoints < MAX_SCORE)
+    {
+        int points = removeMatches(board);
+        totalPoints += points;
+        if (points > 0)
+        {
+            std::cout << "Match-uri eliminate si s-au obtinut " << points << " puncte!" << std::endl;
+            printBoard(board);
+            std::cout << std::endl;
+            dropCandies(board);
+        }
+        else
+        {
+            std::cout << "Nu mai sunt match-uri disponibile!" << std::endl;
+            break;
+        }
+    }
+    std::cout << "Scor final: " << totalPoints << std::endl;
+    return totalPoints;
+}
+int main()
+{
+    int totalScore = 0;
+    for (int i = 0; i < TOTAL_GAMES; ++i)
+    {
+        std::cout << "Joc " << (i + 1) << ":" << std::endl;
+        totalScore += playGame();
+        std::cout << "----------------------------------" << std::endl;
+    }
+    std::cout << "Scor total obtinut din " << TOTAL_GAMES << " jocuri: " << totalScore << std::endl;
+    std::cout << "Media scorului obtinut pe joc: " << static_cast<double>(totalScore) / TOTAL_GAMES << std::endl;
+    return 0;
+}
